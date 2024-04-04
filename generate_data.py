@@ -12,7 +12,9 @@ data = {
 df = pd.DataFrame(data)
 
 # データフレームをJSON形式に変換
-df_json = df.to_json(orient='records')
+# df_json = df.to_json(orient='records')
 
-with open('data.json', 'w') as file:
-    file.write(df_json)
+# with open('data.json', 'w') as file:
+#     file.write(df_json)
+
+df.to_csv("df.csv", index=False)
