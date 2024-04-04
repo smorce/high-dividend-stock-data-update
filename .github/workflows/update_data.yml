@@ -24,8 +24,8 @@ jobs:
       - name: Install dependencies
         run: |
           pip install pandas numpy
-      - name: Generate data.json
-        run: python generate_data.py
+      - name: Generate df.csv
+        run: python generate_data.py     # ★ダミーデータを生成しているが、ココは実際の分析データを生成する。タイムアウトしないかが心配
 
       - name: Setup Node.js
         uses: actions/setup-node@v2
@@ -35,7 +35,7 @@ jobs:
       - name: Install dependencies
         run: |
           npm install
-          npm install papaparse
+          npm install papaparse        # uploadCsvToKV.js のために追加
 
       - name: Install Wrangler CLI
         env:
@@ -44,16 +44,8 @@ jobs:
           npm uninstall -g @cloudflare/wrangler
           npm install -g wrangler
 
-      # 新しいステップを追加: CSVデータをKVにアップロード
       - name: Upload CSV data to KV
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         run: node uploadCsvToKV.js
-        # 必要なパラメータがスクリプト内で正しく設定されていることを確認してください
-
-      # - name: Upload data.json to KV
-      #   env:
-      #     CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-      #     CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-      #   run: wrangler kv:key put dividendProfile --path ./data.json --binding MY_KV_STORE
