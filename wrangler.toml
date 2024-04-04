@@ -1,0 +1,35 @@
+# Cloudflare Workerの基本設定
+name = "high-dividend-stock-pages1" # あなたのWorkerの名前
+account_id = "998bb0d09086bc8a8f4ca7355fdbd836" # CloudflareのアカウントID
+compatibility_date = "2024-04-04" # Cloudflare Workersプラットフォームの互換性日付
+
+# デプロイ先の指定
+# workers_dev = true  # 開発環境にデプロイする場合
+route = "high-dividend-stock-pages1.pages.dev/*" # 本番環境にデプロイする場合のルート設定。例: "example.com/my-worker/*"
+# zone_id = "" # 本番環境にデプロイする場合のゾーンID。ただし、*.pages.devドメインに設定されている場合、このドメインはCloudflare Pagesによって自動的に管理されており、通常はzone_idの指定は不要
+
+kv_namespaces = [
+  { binding = "MY_KV_STORE", id = "4c6bac05f2064f6aa2a20eb4378571cc" }
+]
+
+# ビルド設定: TypeScriptファイルをJavaScriptにトランスパイルする
+[build]
+command = "npm run build" # ビルドコマンド。package.jsonに定義されたスクリプトを指定
+# upload.format = "service-worker"    # 現在のバージョンのWranglerでは、フォーマットは自動的にコードから推測されるため、この設定は不要
+# upload.main = "./dist/index.js" # ビルド後のメインファイルのパス
+
+# 環境変数（オプション）
+# [vars]
+# EXAMPLE_KEY = "example-value"
+
+# 開発環境の設定（オプション）
+# [env.development]
+# name = "your-worker-name-dev"
+# vars = { EXAMPLE_KEY = "dev-value" }
+
+# 本番環境の設定（オプション）
+# [env.production]
+# name = "your-worker-name-prod"
+# route = "example.com/my-worker/*" # 本番環境用のルート設定
+# zone_id = "your-production-zone-id" # 本番環境用のゾーンID
+# vars = { EXAMPLE_KEY = "prod-value" }

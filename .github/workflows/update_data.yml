@@ -1,0 +1,50 @@
+name: Update and Upload Data
+
+# on:
+#   schedule:
+#     - cron: '0 0 1 * *' # 毎月1日に実行
+
+on:
+  workflow_dispatch:
+    inputs:
+      logLevel:
+        description: 'Log level'
+        required: true
+        default: 'warning'
+
+jobs:
+  update_and_upload:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.x'
+      - name: Install dependencies
+        run: |
+          pip install pandas numpy
+      - name: Generate data.json
+        run: python generate_data.py
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Install Wrangler CLI
+        env:
+          CF_API_TOKEN: ${{ secrets.CF_API_TOKEN }} # GitHub SecretからAPIトークンを取得
+        run: |
+          npm uninstall -g @cloudflare/wrangler
+          npm install -g wrangler
+          wrangler deploy app/page.tsx
+
+      - name: Upload data.json to KV
+        run: wrangler kv:key put --binding=MY_KV_STORE "data.json" ./data.json --path
+        env:
+          CF_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID }}
+          CF_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
