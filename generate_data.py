@@ -4,7 +4,7 @@ import numpy as np
 # ダミーデータの作成
 data = {
     'Name': ['Taro', 'Jiro', 'Saburo', 'Shiro', 'Goro'],
-    'Age': [28, 34, 29, 31, 24],
+    'Age': [np.random.randint(10, 101), np.random.randint(10, 101), np.random.randint(10, 101), np.random.randint(10, 101), np.random.randint(10, 101)],
     'City': ['Tokyo', 'Osaka', 'Nagoya', 'Sapporo', 'Fukuoka']
 }
 
