@@ -37,13 +37,14 @@ jobs:
 
       - name: Install Wrangler CLI
         env:
-          CF_API_TOKEN: ${{ secrets.CF_API_TOKEN }} # GitHub SecretからAPIトークンを取得
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }} # GitHub SecretからAPIトークンを取得
         run: |
           npm uninstall -g @cloudflare/wrangler
           npm install -g wrangler
 
       - name: Upload data.json to KV
-        run: wrangler kv:key put --binding=MY_KV_STORE "data.json" ./data.json --path
+        run: wrangler kv:key put dividendProfile --path ./data.json --binding MY_KV_STORE
+
         env:
-          CF_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID }}
-          CF_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
