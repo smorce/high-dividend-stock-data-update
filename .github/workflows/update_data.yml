@@ -23,9 +23,12 @@ jobs:
           python-version: '3.x'
       - name: Install dependencies
         run: |
-          pip install pandas numpy
+          pip install pandas numpy yahooquery
+
       - name: Generate df.csv
-        run: python generate_data.py     # ★ダミーデータを生成しているが、ココは実際の分析データを生成する。タイムアウトしないかが心配
+        env:
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+        run: python generate_data.py
 
       - name: Setup Node.js
         uses: actions/setup-node@v2
