@@ -86,6 +86,8 @@ df_Haiku = pd.merge(df_sp500, df_aristocrat, how='left', on='symbol')
 # 配当貴族カラムを追加する
 # years が連続増配年数, aristocrat_flag = 1 が配当貴族銘柄
 df_Haiku['aristocrat_flag'] = df_Haiku['years'].notnull().astype(int)
+# 欠損値をゼロで穴埋め
+df_Haiku['aristocrat_flag'] = df_Haiku['aristocrat_flag'].fillna(0)
 
 print(df_Haiku.aristocrat_flag.value_counts())
 
@@ -271,6 +273,11 @@ base_user_input = """<instructions>
 </output_format>"""
 
 
+################## ★デバッグ中 #####################
+df_Haiku = df_Haiku[:5]
+################## ★デバッグ中 #####################
+
+
 for i in range(len(df_Haiku)):
 
     # プロンプト作成
@@ -335,10 +342,10 @@ for i in range(len(df_Haiku)):
 
 
 # リネーム
-df_Haiku.rename(columns={"symbol":"ティッカー","companyname":"企業名","stockprice":"株価","years":"連続増配年数","aristocrat_flag":"配当貴族フラグ","marketCap":"時価総額","dividendRate":"1株当りの配当金","dividendYield":"配当利回り","exDividendDate":"次回配当金の権利確定日","payoutRatio":"配当性向","fiveYearAvgDividendYield":"過去5年間の平均配当利回り","TotalRevenue":"売上高","RetainedEarnings":"利益余剰金","CapitalStock":"株主資本(純資産, 自己資本)","TotalAssets":"総資産","NetDebt":"純有利子負債","FreeCashFlow":"フリーキャッシュフロー","OperatingCashFlow":"営業キャッシュフロー","FinancingCashFlow":"財務キャッシュフロー","InvestingCashFlow":"投資キャッシュフロー","totalCash":"現金及び現金同等物","operatingMargins":"営業利益率","currentRatio":"流動比率","capitalRatio":"自己資本比率","operatingCashFlowMargin":"営業キャッシュフローマージン","outstandingBalanceofIssuedStocks":"発行済株式数"}, inplace=True)
+df_Haiku.rename(columns={"symbol":"ティッカー","companyname":"企業名","stockprice":"株価","years":"連続増配年数","aristocrat_flag":"配当貴族フラグ","marketCap":"時価総額","dividendRate":"1株当りの配当金","dividendYield":"配当利回り","exDividendDate":"次回配当金の権利確定日","payoutRatio":"配当性向","fiveYearAvgDividendYield":"過去5年間の平均配当利回り","TotalRevenue":"売上高","RetainedEarnings":"利益余剰金","CapitalStock":"株主資本(純資産, 自己資本)","TotalAssets":"総資産","NetDebt":"純有利子負債","FreeCashFlow":"フリーキャッシュフロー","OperatingCashFlow":"営業キャッシュフロー","FinancingCashFlow":"財務キャッシュフロー","InvestingCashFlow":"投資キャッシュフロー","totalCash":"現金及び現金同等物","operatingMargins":"営業利益率","currentRatio":"流動比率","capitalRatio":"自己資本比率","operatingCashFlowMargin":"営業キャッシュフローマージン","outstandingBalanceofIssuedStocks":"発行済株式数","総評":"AIによる総評"}, inplace=True)
 
 # 順番入れ替え
-df_Haiku = df_Haiku[["ティッカー","企業名","収益と市場優位性","財務の健全性","稼ぐ力と安全性","配当実績と支払い能力","総評","発行済株式数","株価","連続増配年数","配当貴族フラグ","時価総額","1株当りの配当金","配当利回り","次回配当金の権利確定日","配当性向","過去5年間の平均配当利回り","売上高","利益余剰金","株主資本(純資産, 自己資本)","総資産","純有利子負債","フリーキャッシュフロー","営業キャッシュフロー","財務キャッシュフロー","投資キャッシュフロー","現金及び現金同等物","営業利益率","流動比率","自己資本比率","営業キャッシュフローマージン"]]
+df_Haiku = df_Haiku[["ティッカー","企業名","収益と市場優位性","財務の健全性","稼ぐ力と安全性","配当実績と支払い能力","AIによる総評","発行済株式数","株価","連続増配年数","配当貴族フラグ","時価総額","1株当りの配当金","配当利回り","次回配当金の権利確定日","配当性向","過去5年間の平均配当利回り","売上高","利益余剰金","株主資本(純資産, 自己資本)","総資産","純有利子負債","フリーキャッシュフロー","営業キャッシュフロー","財務キャッシュフロー","投資キャッシュフロー","現金及び現金同等物","営業利益率","流動比率","自己資本比率","営業キャッシュフローマージン"]]
 
 # 保存する
 df_Haiku.to_csv("df.csv", index=False)
