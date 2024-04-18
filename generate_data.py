@@ -2,6 +2,7 @@
 # S&P500の銘柄をリストアップする
 # --------------------------------------------------
 from bs4 import BeautifulSoup
+import numpy as np
 import pandas as pd
 import requests
 import json
@@ -22,6 +23,13 @@ def extract_braces_content(text):
     end_index = remaining_text.rfind('}')
     # '{' から最後の '}' までの文字列を返す
     return remaining_text[:end_index+1]
+
+
+def truncate_float_cols(df, n_decimals=2):
+    """小数点第二位で切り捨て(三桁目を捨てる)"""
+    float_cols = df.select_dtypes(include=['float']).columns
+    df[float_cols] = np.floor(df[float_cols] * 10**n_decimals) / 10**n_decimals
+    return df
 
 
 
@@ -87,6 +95,7 @@ df_Haiku = pd.merge(df_sp500, df_aristocrat, how='left', on='symbol')
 # years が連続増配年数, aristocrat_flag = 1 が配当貴族銘柄
 df_Haiku['aristocrat_flag'] = df_Haiku['years'].notnull().astype(int)
 # 欠損値をゼロで穴埋め
+df_Haiku['years']           = df_Haiku['years'].fillna(0)
 df_Haiku['aristocrat_flag'] = df_Haiku['aristocrat_flag'].fillna(0)
 
 print(df_Haiku.aristocrat_flag.value_counts())
@@ -346,6 +355,9 @@ df_Haiku.rename(columns={"symbol":"ティッカー","companyname":"企業名","s
 
 # 順番入れ替え
 df_Haiku = df_Haiku[["ティッカー","企業名","収益と市場優位性","財務の健全性","稼ぐ力と安全性","配当実績と支払い能力","AIによる総評","発行済株式数","株価","連続増配年数","配当貴族フラグ","時価総額","1株当りの配当金","配当利回り","次回配当金の権利確定日","配当性向","過去5年間の平均配当利回り","売上高","利益余剰金","株主資本(純資産, 自己資本)","総資産","純有利子負債","フリーキャッシュフロー","営業キャッシュフロー","財務キャッシュフロー","投資キャッシュフロー","現金及び現金同等物","営業利益率","流動比率","自己資本比率","営業キャッシュフローマージン"]]
+
+# float型のカラムを小数点第2位で切り捨て
+df_Haiku = truncate_float_cols(df_Haiku)
 
 # 保存する
 df_Haiku.to_csv("df.csv", index=False)
