@@ -7,6 +7,7 @@ import pandas as pd
 import requests
 import json
 import os
+import time
 
 pd.set_option('display.max_columns', 200)
 
@@ -288,70 +289,93 @@ df_Haiku = df_Haiku[:5]
 ################## ★デバッグ中 #####################
 
 
+
+# 最大リトライ回数とリトライ間のディレイ時間（秒）
+MAX_RETRIES = 3
+RETRY_DELAY = 2
+
+
 for i in range(len(df_Haiku)):
 
-    # プロンプト作成
-    user_input = base_user_input.replace("df.TotalRevenue", str(df_Haiku.loc[i, 'TotalRevenue']))
-    user_input = user_input.replace("df.operatingMargins", str(df_Haiku.loc[i, 'operatingMargins']))
-    user_input = user_input.replace("df.operatingCashFlowMargin", str(df_Haiku.loc[i, 'operatingCashFlowMargin']))
-    user_input = user_input.replace("df.totalCash", str(df_Haiku.loc[i, 'totalCash']))
-    user_input = user_input.replace("df.currentRatio", str(df_Haiku.loc[i, 'currentRatio']))
-    user_input = user_input.replace("df.capitalRatio", str(df_Haiku.loc[i, 'capitalRatio']))
-    user_input = user_input.replace("df.FreeCashFlow", str(df_Haiku.loc[i, 'FreeCashFlow']))
-    user_input = user_input.replace("df.OperatingCashFlow", str(df_Haiku.loc[i, 'OperatingCashFlow']))
-    user_input = user_input.replace("df.InvestingCashFlow", str(df_Haiku.loc[i, 'InvestingCashFlow']))
-    user_input = user_input.replace("df.FinancingCashFlow", str(df_Haiku.loc[i, 'FinancingCashFlow']))
-    user_input = user_input.replace("df.dividendRate", str(df_Haiku.loc[i, 'dividendRate']))
-    user_input = user_input.replace("df.dividendYield", str(df_Haiku.loc[i, 'dividendYield']))
-    user_input = user_input.replace("df.fiveYearAvgDividendYield", str(df_Haiku.loc[i, 'fiveYearAvgDividendYield']))
-    user_input = user_input.replace("df.payoutRatio", str(df_Haiku.loc[i, 'payoutRatio']))
-    user_input = user_input.replace("df.RetainedEarnings", str(df_Haiku.loc[i, 'RetainedEarnings']))
+    for attempt in range(MAX_RETRIES):
+
+        try:
+
+          # プロンプト作成
+          user_input = base_user_input.replace("df.TotalRevenue", str(df_Haiku.loc[i, 'TotalRevenue']))
+          user_input = user_input.replace("df.operatingMargins", str(df_Haiku.loc[i, 'operatingMargins']))
+          user_input = user_input.replace("df.operatingCashFlowMargin", str(df_Haiku.loc[i, 'operatingCashFlowMargin']))
+          user_input = user_input.replace("df.totalCash", str(df_Haiku.loc[i, 'totalCash']))
+          user_input = user_input.replace("df.currentRatio", str(df_Haiku.loc[i, 'currentRatio']))
+          user_input = user_input.replace("df.capitalRatio", str(df_Haiku.loc[i, 'capitalRatio']))
+          user_input = user_input.replace("df.FreeCashFlow", str(df_Haiku.loc[i, 'FreeCashFlow']))
+          user_input = user_input.replace("df.OperatingCashFlow", str(df_Haiku.loc[i, 'OperatingCashFlow']))
+          user_input = user_input.replace("df.InvestingCashFlow", str(df_Haiku.loc[i, 'InvestingCashFlow']))
+          user_input = user_input.replace("df.FinancingCashFlow", str(df_Haiku.loc[i, 'FinancingCashFlow']))
+          user_input = user_input.replace("df.dividendRate", str(df_Haiku.loc[i, 'dividendRate']))
+          user_input = user_input.replace("df.dividendYield", str(df_Haiku.loc[i, 'dividendYield']))
+          user_input = user_input.replace("df.fiveYearAvgDividendYield", str(df_Haiku.loc[i, 'fiveYearAvgDividendYield']))
+          user_input = user_input.replace("df.payoutRatio", str(df_Haiku.loc[i, 'payoutRatio']))
+          user_input = user_input.replace("df.RetainedEarnings", str(df_Haiku.loc[i, 'RetainedEarnings']))
 
 
-    # 出力を安定化させる手法を使っている(additional_information)
-    # https://zenn.dev/kinzal/articles/52d47848826227
-    data = json.dumps({
-        "model": "anthropic/claude-3-haiku",
-        "temperature": 0.9,
-        "max_tokens": 500,
-        "top_p": 0.95,
-        "top_k": 40,
-        "repetition_penalty": 1.1,
-        "stream": False,
-        "messages": [
-            {"role": "user", "content": user_input},
-            {"role": "assistant", "content": '{\n  "additional_information": "'}
-        ]
-    })
+          # 出力を安定化させる手法を使っている(エラーの原因となるものを additional_information に流し、additional_information の頭出しをつけて続きを出力させる)
+          # https://zenn.dev/kinzal/articles/52d47848826227
+          data = json.dumps({
+              "model": "anthropic/claude-3-haiku",
+              "temperature": 0.9,
+              "max_tokens": 500,
+              "top_p": 0.95,
+              "top_k": 40,
+              "repetition_penalty": 1.1,
+              "stream": False,
+              "messages": [
+                  {"role": "user", "content": user_input},
+                  {"role": "assistant", "content": '{\n  "additional_information": "'}
+              ]
+          })
 
-    # POST
-    response = requests.post(
-      url=url,
-      headers=headers,
-      data=data
-    )
+          # POST
+          response = requests.post(
+            url=url,
+            headers=headers,
+            data=data
+          )
 
-    if response.status_code == 200:
-        json_dict = response.json()
-        json_str = json_dict["choices"][0]["message"]["content"]
-        json_str_extracted = extract_braces_content(json_str)     # パース
-        company_dict = json.loads(json_str_extracted)
-        # print(company_dict)
-    else:
-        print("リクエストに失敗しました。")
+          if response.status_code == 200:
+              json_dict = response.json()
+              json_str = json_dict["choices"][0]["message"]["content"]
+              json_str_extracted = extract_braces_content(json_str)     # パース
+              company_dict = json.loads(json_str_extracted)
+              # print(company_dict)
 
-    # 5点満点の平均値
-    company_dict["収益と市場優位性"]     = (company_dict["TotalRevenue"] + company_dict["operatingMargins"] + company_dict["operatingCashFlowMargin"]) / 3
-    company_dict["財務の健全性"]         = (company_dict["totalCash"] + company_dict["currentRatio"] + company_dict["capitalRatio"]) / 3
-    company_dict["稼ぐ力と安全性"]       = (company_dict["FreeCashFlow"] + company_dict["OperatingCashFlow"] + company_dict["InvestingCashFlow"] + company_dict["FinancingCashFlow"]) / 4
-    company_dict["配当実績と支払い能力"] = (company_dict["dividendRate"] + company_dict["dividendYield"] + company_dict["fiveYearAvgDividendYield"] + company_dict["payoutRatio"] + company_dict["RetainedEarnings"]) / 5
+              # 5点満点の平均値
+              company_dict["収益と市場優位性"]     = (company_dict["TotalRevenue"] + company_dict["operatingMargins"] + company_dict["operatingCashFlowMargin"]) / 3
+              company_dict["財務の健全性"]         = (company_dict["totalCash"] + company_dict["currentRatio"] + company_dict["capitalRatio"]) / 3
+              company_dict["稼ぐ力と安全性"]       = (company_dict["FreeCashFlow"] + company_dict["OperatingCashFlow"] + company_dict["InvestingCashFlow"] + company_dict["FinancingCashFlow"]) / 4
+              company_dict["配当実績と支払い能力"] = (company_dict["dividendRate"] + company_dict["dividendYield"] + company_dict["fiveYearAvgDividendYield"] + company_dict["payoutRatio"] + company_dict["RetainedEarnings"]) / 5
 
-    # 代入
-    df_Haiku.loc[i, '収益と市場優位性']     = company_dict["収益と市場優位性"]
-    df_Haiku.loc[i, '財務の健全性']         = company_dict["財務の健全性"]
-    df_Haiku.loc[i, '稼ぐ力と安全性']       = company_dict["稼ぐ力と安全性"]
-    df_Haiku.loc[i, '配当実績と支払い能力'] = company_dict["配当実績と支払い能力"]
-    df_Haiku.loc[i, '総評']                = company_dict["総評"]
+              # 代入
+              df_Haiku.loc[i, '収益と市場優位性']     = company_dict["収益と市場優位性"]
+              df_Haiku.loc[i, '財務の健全性']         = company_dict["財務の健全性"]
+              df_Haiku.loc[i, '稼ぐ力と安全性']       = company_dict["稼ぐ力と安全性"]
+              df_Haiku.loc[i, '配当実績と支払い能力'] = company_dict["配当実績と支払い能力"]
+              df_Haiku.loc[i, '総評']                = company_dict["総評"]
+
+              break  # 成功したらループを抜ける
+
+          else:
+              print("リクエストに失敗しました。")
+
+        except (requests.RequestException, json.JSONDecodeError, KeyError) as e:
+            print(f"エラーが発生しました: {e}")
+
+            if attempt < MAX_RETRIES - 1:
+                print(f"リトライ {attempt + 1}/{MAX_RETRIES}")
+                time.sleep(RETRY_DELAY)  # 指定されたディレイ時間待機
+            
+            else:
+                print("最大リトライ回数に達しました。次のレコードに進みます。")
 
 
 # リネーム
