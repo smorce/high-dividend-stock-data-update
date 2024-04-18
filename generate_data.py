@@ -224,7 +224,7 @@ headers = {
     "Authorization": f"Bearer {OPENROUTER_API_KEY}",
 }
 base_user_input = """<instructions>
-あなたの役割は、提供された入力データに基づいて高配当株を分析し、その結果を常にJSON形式で出力するプログラムです。高い配当利回りだけではなく、安定した財務基盤と高い収益性を持ち、将来的にもその配当利回りを維持できる企業を見つけ出すことが目的です。各変数について5点満点で評価し、その総評をコメントで提供してください。余計な出力は避け、必要な情報のみをJSONスキーマで出力してください。
+あなたの役割は、提供された入力データに基づいて高配当株を分析し、その結果を常にJSON形式で出力するプログラムです。高い配当利回りだけではなく、安定した財務基盤と高い収益性を持ち、将来的にもその配当利回りを維持できる企業を見つけ出すことが目的です。各変数について5点満点で評価し、その総評をコメントで提供してください。余計な出力は避け、必要な情報のみをJSONデータで出力してください。
 </instructions>
 
 <variables>
@@ -263,7 +263,6 @@ base_user_input = """<instructions>
 
 <output_format>
 {
-  "additional_information": "理由や注意事項、補足、特記事項など、どうしても書きたいことがあればここに書いてください。",
   "TotalRevenue": "評価点",
   "operatingMargins": "評価点",
   "operatingCashFlowMargin": "評価点",
@@ -319,7 +318,7 @@ for i in range(len(df_Haiku)):
           user_input = user_input.replace("df.RetainedEarnings", str(df_Haiku.loc[i, 'RetainedEarnings']))
 
 
-          # 出力を安定化させる手法を使っている(エラーの原因となるものを additional_information に流し、additional_information の頭出しをつけて続きを出力させる)
+          # 出力を安定化させるシンプルな手法を使っている( { の頭出しをつけて続きを出力させる)
           # https://zenn.dev/kinzal/articles/52d47848826227
           data = json.dumps({
               "model": "anthropic/claude-3-haiku",
@@ -331,7 +330,7 @@ for i in range(len(df_Haiku)):
               "stream": False,
               "messages": [
                   {"role": "user", "content": user_input},
-                  {"role": "assistant", "content": '{\n  "additional_information": "'}
+                  {"role": "assistant", "content": "{"}
               ]
           })
 
