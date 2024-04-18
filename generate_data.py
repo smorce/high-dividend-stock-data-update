@@ -330,7 +330,7 @@ for i in range(len(df_Haiku)):
               "stream": False,
               "messages": [
                   {"role": "user", "content": user_input},
-                  {"role": "assistant", "content": "{"}
+                  {"role": "user", "content": "{"}
               ]
           })
 
@@ -362,9 +362,6 @@ for i in range(len(df_Haiku)):
               df_Haiku.loc[i, '総評']                = company_dict["総評"]
 
               break  # 成功したらループを抜ける
-
-          else:
-              print("リクエストに失敗しました。")
 
         except (requests.RequestException, json.JSONDecodeError, KeyError) as e:
             print(f"エラーが発生しました: {e}")
