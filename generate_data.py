@@ -357,7 +357,7 @@ df_Haiku.rename(columns={"symbol":"ティッカー","companyname":"企業名","s
 df_Haiku = df_Haiku[["ティッカー","企業名","収益と市場優位性","財務の健全性","稼ぐ力と安全性","配当実績と支払い能力","AIによる総評","発行済株式数","株価","連続増配年数","配当貴族フラグ","時価総額","1株当りの配当金","配当利回り","次回配当金の権利確定日","配当性向","過去5年間の平均配当利回り","売上高","利益余剰金","株主資本(純資産, 自己資本)","総資産","純有利子負債","フリーキャッシュフロー","営業キャッシュフロー","財務キャッシュフロー","投資キャッシュフロー","現金及び現金同等物","営業利益率","流動比率","自己資本比率","営業キャッシュフローマージン"]]
 
 # float型のカラムを小数点第2位で切り捨て
-convert_float_cols = ['payoutRatio', 'operatingMargins', 'currentRatio', 'dividendYield']
+convert_float_cols = ['配当性向', '営業利益率', '流動比率', '配当利回り']
 df_Haiku[convert_float_cols] = df_Haiku[convert_float_cols].astype(float)
 df_Haiku = truncate_float_cols(df_Haiku)
 
