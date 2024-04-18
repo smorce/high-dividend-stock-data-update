@@ -1,5 +1,5 @@
 ## GitHub Actions
-- Haikuで分析してその結果をCloudflare Workers KVの値を更新する
+- Haikuで分析してその結果をCloudflare Workers KVにアップロードして値を上書きする
 - GitHub Actionsで毎月回す
 
 ## To Do
