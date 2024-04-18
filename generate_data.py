@@ -209,7 +209,7 @@ df_Haiku["収益と市場優位性"]     = 0.0
 df_Haiku["財務の健全性"]         = 0.0
 df_Haiku["稼ぐ力と安全性"]       = 0.0
 df_Haiku["配当実績と支払い能力"] = 0.0
-df_Haiku["総評"]                 = ""
+df_Haiku["総評"]                = ""
 
 
 
@@ -223,7 +223,7 @@ headers = {
     "Authorization": f"Bearer {OPENROUTER_API_KEY}",
 }
 base_user_input = """<instructions>
-あなたの役割は、提供された入力データに基づいて、高配当優良株を分析し、その結果を常にJSON形式で出力するプログラムです。高い配当利回りだけではなく、安定した財務基盤と高い収益性を持ち、将来的にもその配当利回りを維持できる企業を見つけ出すことが目的です。各変数について5点満点で評価し、その総評をコメントで提供してください。余計な出力は避け、必要な情報のみをJSONデータで出力してください。
+あなたの役割は、提供された入力データに基づいて高配当株を分析し、その結果を常にJSON形式で出力するプログラムです。高い配当利回りだけではなく、安定した財務基盤と高い収益性を持ち、将来的にもその配当利回りを維持できる企業を見つけ出すことが目的です。各変数について5点満点で評価し、その総評をコメントで提供してください。余計な出力は避け、必要な情報のみをJSONスキーマで出力してください。
 </instructions>
 
 <variables>
@@ -262,6 +262,7 @@ base_user_input = """<instructions>
 
 <output_format>
 {
+  "additional_information": "理由や注意事項、補足、特記事項など、どうしても書きたいことがあればここに書いてください。",
   "TotalRevenue": "評価点",
   "operatingMargins": "評価点",
   "operatingCashFlowMargin": "評価点",
@@ -307,6 +308,8 @@ for i in range(len(df_Haiku)):
     user_input = user_input.replace("df.RetainedEarnings", str(df_Haiku.loc[i, 'RetainedEarnings']))
 
 
+    # 出力を安定化させる手法を使っている(additional_information)
+    # https://zenn.dev/kinzal/articles/52d47848826227
     data = json.dumps({
         "model": "anthropic/claude-3-haiku",
         "temperature": 0.9,
@@ -316,7 +319,8 @@ for i in range(len(df_Haiku)):
         "repetition_penalty": 1.1,
         "stream": False,
         "messages": [
-            {"role": "user", "content": user_input}
+            {"role": "user", "content": user_input},
+            {"role": "assistant", "content": '{\n  "additional_information": "'}
         ]
     })
 
@@ -356,9 +360,10 @@ df_Haiku.rename(columns={"symbol":"ティッカー","companyname":"企業名","s
 # 順番入れ替え
 df_Haiku = df_Haiku[["ティッカー","企業名","収益と市場優位性","財務の健全性","稼ぐ力と安全性","配当実績と支払い能力","AIによる総評","発行済株式数","株価","連続増配年数","配当貴族フラグ","時価総額","1株当りの配当金","配当利回り","次回配当金の権利確定日","配当性向","過去5年間の平均配当利回り","売上高","利益余剰金","株主資本(純資産, 自己資本)","総資産","純有利子負債","フリーキャッシュフロー","営業キャッシュフロー","財務キャッシュフロー","投資キャッシュフロー","現金及び現金同等物","営業利益率","流動比率","自己資本比率","営業キャッシュフローマージン"]]
 
-# float型のカラムを小数点第2位で切り捨て
+# Float型に変換
 convert_float_cols = ['配当性向', '営業利益率', '流動比率', '配当利回り']
 df_Haiku[convert_float_cols] = df_Haiku[convert_float_cols].astype(float)
+# float型のカラムを小数点第2位で切り捨て
 df_Haiku = truncate_float_cols(df_Haiku)
 
 # 保存する
