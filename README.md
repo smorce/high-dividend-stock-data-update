@@ -3,8 +3,8 @@
 - GitHub Actionsで毎月回す
 
 ## To Do
-- デバッグ中で5件に絞っている
-- 以下だけ修正する
+- 【done】デバッグ中で5件に絞っている
+- 【done】以下だけ修正する
 
 on:<br>
   schedule:<br>

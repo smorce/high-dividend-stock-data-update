@@ -1,8 +1,8 @@
 name: Update and Upload Data
 
-# on:
-#   schedule:
-#     - cron: '0 0 1 * *' # 毎月1日に実行　　　★これを復活させる
+on:
+  schedule:
+    - cron: '0 0 1 * *' # 毎月1日に実行
 
 on:
   workflow_dispatch:
