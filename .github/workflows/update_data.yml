@@ -2,8 +2,9 @@ name: Update and Upload Data
 
 on:
   schedule:
-    - cron: '0 0 2 * *' # 毎月1日に実行　←　戻す
+    - cron: '0 0 1 * *' # 毎月1日に実行　←　10:12 に実行されたので結構ズレるかも
 
+# 以下は手動でやる設定
 # on:
 #   workflow_dispatch:
 #     inputs:
